@@ -11,7 +11,7 @@ rcParams['figure.figsize'] = 12, 10
 
 df = pd.read_csv('data.csv')
 
-print df.head()
+#print df.head()
 
 
 #Define input array with angles from 60deg to 300deg converted to radians
@@ -21,7 +21,7 @@ y = np.sin(x) + np.random.normal(0,0.15,len(x))
 z = np.sin(x)
 data = pd.DataFrame(np.column_stack([x,y]),columns=['x','y'])
 
-print data.head()
+#print data.head()
 
 #plt.plot(data['x'],data['y'],'.')
 
@@ -35,31 +35,37 @@ for i in range(2,16):  #power of 1 is already there
 #print data.head()
 
 
+def ridge_yago(a,b,c):
+	return 1
 
 from sklearn.linear_model import Ridge
 def ridge_regression(data, predictors, alpha, models_to_plot={}):
-    #Fit the model
-    
-    #print data[predictors]
-    
-    ridgereg = Ridge(alpha=alpha,normalize=True)
-    ridgereg.fit(data[predictors],data['y'])
-    y_pred = ridgereg.predict(data[predictors])
-    
-    #Check if a plot is to be made for the entered alpha
-    if alpha in models_to_plot:
-        plt.subplot(models_to_plot[alpha])
-        plt.tight_layout()
-        plt.plot(data['x'],y_pred)
-        plt.plot(data['x'],data['y'],'.')
-        plt.title('Plot for alpha: %.3g'%alpha)
-    
-    #Return the result in pre-defined format
-    rss = sum((y_pred-data['y'])**2)
-    ret = [rss]
-    ret.extend([ridgereg.intercept_])
-    ret.extend(ridgereg.coef_)
-    return ret
+	
+	ridge_yago(data,predictors,alpha)
+	#Fit the model
+
+	#print data[predictors]
+	
+	ridgereg = Ridge(alpha=alpha,normalize=True)
+	ridgereg.fit(data[predictors],data['y'])
+	print alpha
+	print ridgereg.coef_
+	y_pred = ridgereg.predict(data[predictors])
+	
+	#Check if a plot is to be made for the entered alpha
+	if alpha in models_to_plot:
+		plt.subplot(models_to_plot[alpha])
+		plt.tight_layout()
+		plt.plot(data['x'],y_pred)
+		plt.plot(data['x'],data['y'],'.')
+		plt.title('Plot for alpha: %.3g'%alpha)
+	
+	#Return the result in pre-defined format
+	rss = sum((y_pred-data['y'])**2)
+	ret = [rss]
+	ret.extend([ridgereg.intercept_])
+	ret.extend(ridgereg.coef_)
+	return ret
 
 #Initialize predictors to be set of 15 powers of x
 predictors=['x']
@@ -67,9 +73,9 @@ predictors.extend(['x_%d'%i for i in range(2,16)])
 
 #Set the different values of alpha to be tested
 alpha_ridge = [1e-15, 1e-10, 1e-8, 1e-4, 1e-3,1e-2, 1, 5, 10, 20]
-alpha_ridge = [1]
+#alpha_ridge = [1]
 alpha_n = 10
-alpha_n = 1
+#alpha_n = 1
 
 #Initialize the dataframe for storing coefficients.
 col = ['rss','intercept'] + ['coef_x_%d'%i for i in range(1,16)]
@@ -81,13 +87,17 @@ ind = ['alpha_%.2g'%alpha_ridge[i] for i in range(0,alpha_n)]
 
 coef_matrix_ridge = pd.DataFrame(index=ind, columns=col)
 
+print data.head()
 
+print predictors
 
 models_to_plot = {1e-15:231, 1e-10:232, 1e-4:233, 1e-3:234, 1e-2:235, 5:236}
 for i in range(alpha_n):
     coef_matrix_ridge.iloc[i,] = ridge_regression(data, predictors, alpha_ridge[i], models_to_plot)
 
-plt.show()
+#plt.show()
+
+
 
 
 
