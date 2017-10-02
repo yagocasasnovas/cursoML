@@ -15,3 +15,5 @@ apt-get install build-essential python-dev python-setuptools python-numpy python
 pip install -U scikit-learn
 
 pip install matplotlib
+
+pip install pandas
