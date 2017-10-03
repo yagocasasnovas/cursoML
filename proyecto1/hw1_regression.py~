@@ -96,6 +96,8 @@ ok.add(m)
 
 kkk = kkk + str(m)
 
+# numero 2
+
 new_vector_frame = pd.DataFrame([x_def], columns=list(xtrain_file))
 
 xtrain_file = xtrain_file.append(new_vector_frame)
@@ -123,6 +125,81 @@ for x in xtest_file_matrix:
 	n = n + 1
 
 ok.add(m)
+
+kkk = kkk + ',' + str(m)
+
+
+#numero 3
+
+new_vector_frame = pd.DataFrame([x_def], columns=list(xtrain_file))
+
+xtrain_file = xtrain_file.append(new_vector_frame)
+
+new_y = pd.DataFrame([y_def], columns=list(ytrain_file))
+
+ytrain_file = ytrain_file.append(new_y)
+
+#w = ridge_yago(xtrain_file,ytrain_file,lmbda,dim,1)[0]
+
+epsylon = np.linalg.inv(lmbda * np.identity(dim,dtype=float) + (1/(sigma2*sigma2))*ridge_yago(xtrain_file,ytrain_file,lmbda,dim,0)[1])
+
+sig_val = -1
+n = 1
+m = 0
+for x in xtest_file_matrix:
+	
+	sigma_new = sigma2*sigma2 + np.dot(x,np.dot(epsylon,x))
+	
+	if sig_val < sigma_new and n not in ok:
+		sig_val = sigma_new
+		m = n
+		x_def = x
+		y_def = np.dot(x,w)
+	n = n + 1
+
+ok.add(m)
+
+kkk = kkk + ',' + str(m)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
