@@ -27,15 +27,19 @@ y_train_file = sys.argv[4]
 x_test_file = sys.argv[5]
 
 
-xtrain_file = pd.read_csv(x_train_file)
+xtrain_file = pd.read_csv(x_train_file, sep = ',', header=None)
 
-xtrain_file1 = xtrain_file.copy()
+dim = xtrain_file.shape[1]
 
-xtrain_file['intercept'] = pd.Series(np.ones(xtrain_file.shape[0]),dtype=float)
+cols = ['a{}'.format(i) for i in range(0, dim)]
 
+xtrain_file.columns = cols
 
+xtrain_file_original = xtrain_file.copy()
 
-xtrain_file = xtrain_file * 1.0
+print xtrain_file
+
+xtrain_file_intercept = xtrain_file * 1.0
 
 ytrain_file = pd.read_csv(y_train_file)
 
@@ -48,7 +52,7 @@ xtest_file = pd.read_csv(x_test_file)
 xtest_file = xtest_file * 1.0
 
 
-xtrain_file_matrix = xtrain_file.as_matrix()
+xtrain_file_matrix = xtrain_file_intercept.as_matrix()
 
 ytrain_file_matrix = ytrain_file.as_matrix()
 
@@ -89,7 +93,11 @@ def ridge_yago(dataX,Y,alpha):
 	j1 = np.dot(dataXXT,Y)
 	
 	
+	
+	
 	j2 = np.dot(dataXXT,dataXX)
+	
+	
 	
 	gammaMatrix = np.identity(dimension,dtype=float)
 
@@ -99,9 +107,12 @@ def ridge_yago(dataX,Y,alpha):
 	
 	j5 = np.linalg.inv(j4)
 	
-	wrr = np.dot(j5,j1)
-
 	
+	wrr = np.dot(j5,j1)
+	
+	
+
+
 	
 	wrr_a = wrr.tolist()
 	
@@ -120,7 +131,7 @@ def ridge_yago(dataX,Y,alpha):
 	
 	return np.array(ll)
 	
-w = ridge_yago(xtrain_file,ytrain_file,lmbda)
+w = ridge_yago(xtrain_file_intercept,ytrain_file,lmbda)
 
 
 
@@ -179,6 +190,7 @@ def get_max(xtest_file_local,xtrain_file_local,ytrain_file_local,w_local,lmbda_l
 		n = n + 1
 	#calculo y0
 	
+	
 	xvector_test = np.append(xvector_test,1.0)
 	y_new = np.dot(xvector_test,w_local)
 	
@@ -189,43 +201,55 @@ def get_max(xtest_file_local,xtrain_file_local,ytrain_file_local,w_local,lmbda_l
 	file.write(str(n)+',')
 	file.close()
 	
-	#print w_local
-	#print y_new
-	#print max_sigma
-	#print max_vector
-	#print n
+	print 'iteration'
+	print w_local
+	print y_new
+	print max_sigma
+	print max_vector
+	print n
 	
 	output = []
 	
 	output.append(y_new)
 	output.append(max_vector)
+	output.append(n)
 	
 	return output
 
-output = get_max(xtest_file, xtrain_file1, ytrain_file, w, 1.0, sigma2)
+output = get_max(xtest_file, xtrain_file_original, ytrain_file, w, lmbda, sigma2)
 
-oo = np.append(output[1],99.0)
+#anyado un 1 final al vector maximo X
 
-outt = pd.DataFrame([oo], columns=list(xtrain_file))
+oo = np.append(output[1],1.0)
 
-pepe = xtrain_file.append(outt)
+#creo un dataframe a partir del array oo
 
+outt = pd.DataFrame([oo], columns=list(xtrain_file_intercept))
 
+#anyado el vector maximo con el 1 final a X dataframe
+
+xtrain_file_intercept1 = xtrain_file_intercept.append(outt)
+
+#anyado el valor y0 al nuevo Y
 
 outt2 = pd.DataFrame([output[0]], columns=list(ytrain_file))
 
-juan = ytrain_file.append(outt2)
+ytrain_file1 = ytrain_file.append(outt2)
 
-output1 = get_max(xtest_file, xtrain_file1, ytrain_file, w, 1.0, sigma2)
+#creo un dataframe a partir del array output (sin unos)
 
+outt2 = pd.DataFrame([output[1]], columns=list(xtrain_file_original))
 
+#anyado el vector max al dataframe X sin 1s
 
+xtrain_file_original1 = xtrain_file_original.append(outt2)
 
+xtrain_file_matrix1 = xtrain_file_intercept1.as_matrix()
 
+ytrain_file_matrix1 = ytrain_file1.as_matrix()
 
+xtest_file1 = xtest_file.drop(xtest_file.index[output[2]-1])
 
+w1 = ridge_yago(xtrain_file_intercept1,ytrain_file1,lmbda)
 
-
-
-
-
+output = get_max(xtest_file1, xtrain_file_original1, ytrain_file1, w1, lmbda, sigma2)
