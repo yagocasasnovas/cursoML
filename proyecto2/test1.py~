@@ -9,7 +9,7 @@ X_test = np.genfromtxt(sys.argv[3], delimiter=",")
 
 ## can make more functions if required
 
-print X_test
+print y_train
 
 
 def pluginClassifier(X_train, y_train, X_test):    
