@@ -18,12 +18,23 @@ def calculate_mean_std_dev(xtrain,ytrain):
 	
 	answer = {}
 	
+	d = set_number_of_x(X_train)
+	
+	
+	
+	#MLE
+	
+	
 	all_classes = {}
 	ytrain.astype(int)
 	
 	xtrain_list = xtrain.tolist()
+	print len(xtrain_list)
 	
 	ytrain_list = ytrain.tolist()
+	
+	instances = len(ytrain_list)
+	print instances
 	
 	#print xtrain_list
 	
@@ -32,6 +43,18 @@ def calculate_mean_std_dev(xtrain,ytrain):
 	ytrain_unique = list(ytrain_unique)
 
 	ytrain_unique = map(int,ytrain_unique)
+
+	#MLE
+	mle = {}
+	for c in ytrain_unique:
+		cnt = 0
+		for y in ytrain_list:
+			if y == c:
+				cnt = cnt + 1
+		
+		mle[c] = cnt/instances
+		
+	
 
 	for c in ytrain_unique:
 		
@@ -73,22 +96,38 @@ def calculate_mean_std_dev(xtrain,ytrain):
 	class_std_dev = {}
 	
 	for c in ytrain_unique:
-		long2 = len(all_classes[c])
-		standards_dd = []
-		for jj in range(set_number_of_x(X_train)):
-			std = 0
-			std_q = 0
-			for s in all_classes[c]:
-				
-				std_q = std_q + (q[jj] - class_mean[c][jj])*(q[jj] - class_mean[c][jj])
-			std = np.sqrt(std_q/long2)
-			standards_dd.append(std)
+		
+		#print all_classes[c]
+		#raw_input()
+		
+		rr = np.zeros([d,d])
+		
 
-		class_std_dev[c] = standards_dd
+		
+		for x in all_classes[c]:
+			
+			x_np = np.asarray(x)
+			mean_np = np.asarray(answer['mean'][c])
+			toro = x_np - mean_np
+			
+			rr = rr + np.outer(toro,toro)
+		
+		
+		rr = rr / long1
+		
+		class_std_dev[c] = rr
 		
 	
+	
 	answer['standard'] = class_std_dev
+	
+	
+	
 	answer['unique'] = ytrain_unique
+	
+	answer['mle'] = mle
+	
+
 	
 	return answer
 	
@@ -96,8 +135,19 @@ def calculate_mean_std_dev(xtrain,ytrain):
 
 
 def prob(x, mean, std):
+	
+	inversecov = np.linalg.inv(std)
+	toro = x - mean
+	ff = np.dot(inversecov,toro)
+	
+	js = np.dot(toro,ff)
+	
+	js = -1 * js / 2
+	raw_input()
+	
+	
 	e = np.exp(-(x-mean)*(x-mean)/(2*std*std))
-	return (1 / (np.sqrt(2*np.pi)*std*std)) * e
+	return (1 / (np.sqrt(2*np.pi) * std*std)) * e
 
 
 
@@ -106,28 +156,23 @@ def pluginClassifier(X_train, y_train, X_test):
 	
 	mean_std = calculate_mean_std_dev(X_train,y_train)
 	
+
+	
 	final_outputs = []
 	
 	for x in X_test:
 		final_vector = []
 		for c in mean_std['unique']:
+			print c
 			pepe = 1
-			for idx,k in enumerate(x):
-				
-				#print c
-				#print k
-				#print mean_std['mean'][c][idx]
-				#print mean_std['standard'][c][idx]
-				proba = prob(k,mean_std['mean'][c][idx],mean_std['standard'][c][idx])
-				#print proba
-				
-				pepe = pepe * proba
-				
-				
-				
-			final_vector.append(pepe)
+
+			proba = prob(x,mean_std['mean'][c],mean_std['standard'][c])
+
+
+			pepe = pepe * proba
+		final_vector.append(pepe)
 		
-		final_outputs.append(final_vector)
+	final_outputs.append(final_vector)
 	
 		
 	
