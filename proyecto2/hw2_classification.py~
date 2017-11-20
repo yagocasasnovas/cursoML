@@ -29,12 +29,12 @@ def calculate_mean_std_dev(xtrain,ytrain):
 	ytrain.astype(int)
 	
 	xtrain_list = xtrain.tolist()
-	print len(xtrain_list)
+	#print len(xtrain_list)
 	
 	ytrain_list = ytrain.tolist()
 	
 	instances = len(ytrain_list)
-	print instances
+	#print instances
 	
 	#print xtrain_list
 	
@@ -134,7 +134,7 @@ def calculate_mean_std_dev(xtrain,ytrain):
 
 
 
-def prob(x, mean, std):
+def prob(x, mean, std, mle):
 	
 	inversecov = np.linalg.inv(std)
 	toro = x - mean
@@ -142,12 +142,22 @@ def prob(x, mean, std):
 	
 	js = np.dot(toro,ff)
 	
-	js = -1 * js / 2
-	raw_input()
+	js = (-1) * js / 2
 	
+	#print js
+	ee = np.exp(js)
+	#print ee
+	determ = np.linalg.det(std)
+	#print determ
+	determ1 = np.power(determ,-1/2)
+	#print determ1
+	out = determ1 * mle * ee
+	#print out
+	#raw_input()
+	return out
 	
-	e = np.exp(-(x-mean)*(x-mean)/(2*std*std))
-	return (1 / (np.sqrt(2*np.pi) * std*std)) * e
+	#e = np.exp(-(x-mean)*(x-mean)/(2*std*std))
+	#return (1 / (np.sqrt(2*np.pi) * std*std)) * e
 
 
 
@@ -163,16 +173,19 @@ def pluginClassifier(X_train, y_train, X_test):
 	for x in X_test:
 		final_vector = []
 		for c in mean_std['unique']:
-			print c
-			pepe = 1
+			
 
-			proba = prob(x,mean_std['mean'][c],mean_std['standard'][c])
+			
+			proba = prob(x,mean_std['mean'][c],mean_std['standard'][c],mean_std['mle'][c])
 
 
-			pepe = pepe * proba
-		final_vector.append(pepe)
+			#pepe = pepe * proba
+			final_vector.append(proba)
 		
-	final_outputs.append(final_vector)
+		norma = numpy.linalg.norm(final_vector)
+		final_vector = final_vector / norma
+		
+		final_outputs.append(final_vector)
 	
 		
 	
