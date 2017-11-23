@@ -153,7 +153,7 @@ for iter in range(it):
 
 sigmas = []
 
-factor = 1
+factor = 10000
 
 for k in range(K):
 
@@ -168,41 +168,96 @@ for k in range(K):
 	distrib.append(1/K)
 
 
-###E Step
+for iteration in range(it):
+	###E Step
 
-fi_x_vector = []
+	fi_x_vector = []
 
 
 
-for i in range(instances):
+	for i in range(instances):
 	
-	fi_k_vector = []
+		fi_k_vector = []
 	
+		for k in range(K):
+			
+			
+			
+			pk = prob(X[i],centroids_EM[k],sigmas[k],distrib[k])
+		
+			pkk = pk * distrib[k]
+		
+			ss = 0
+			for k1 in range (K):
+				#print str(i) + ' ' + str(k) + ' ' + str(k1) + ' ' + str(len(centroids_EM)) + ' ' + str(len(sigmas))+' ' + str(len(distrib))
+				#print str(i) + ' ' + str(k) + ' ' + str(k1)
+				p = prob(X[i],centroids_EM[k1],sigmas[k1],distrib[k1])
+				pp = p * distrib[k1]
+			
+				ss = ss + pp
+
+			fi_k_vector.append(pkk/ss)
+	
+		fi_x_vector.append(fi_k_vector)
+	
+
+
+
+	###M Step
+
+	n_vector = []
 	for k in range(K):
 		
+		n_temp_k = 0
 		
+		for i in range(instances):
 		
-		pk = prob(X[i],centroids_EM[k],sigmas[k],distrib[k])
+			n_temp_k = n_temp_k = fi_x_vector[i][k]
 		
-		pkk = pk * distrib[k]
-		print "pkk"
-		print pkk
-		ss = 0
-		for k1 in range (K):
-			#print str(i) + ' ' + str(k) + ' ' + str(k1) + ' ' + str(len(centroids_EM)) + ' ' + str(len(sigmas))+' ' + str(len(distrib))
-			print str(i) + ' ' + str(k) + ' ' + str(k1)
-			p = prob(X[i],centroids_EM[k1],sigmas[k1],distrib[k1])
-			pp = p * distrib[k1]
-			
-			ss = ss + pp
-			raw_input()
-		print "s"
-		print pkk/ss
-		fi_k_vector.append(pkk/ss)
+		n_vector.append(n_temp_k)
 	
-	fi_x_vector.append(fi_k_vector)
+	print n_vector
+	print np.linalg.norm(n_vector)
+	print distrib
+	raw_input()
+	
+	#update distrib
 	
 
 
+	for k in range(K):
+		
+		ty = n_vector[k]
+		ty = ty / instances
+		distrib[k]=ty
+		
+		#update mean
+	
+		cuscus = 0
+		for i in range(instances):
+		
+			as1 = n_vector[k]*X[i]
+		
+			cuscus = cuscus + as1
+		
+		centroids_EM[k] = cuscus/n_vector[k]
+		
+		
+		#update sigma
+		cuscus2 = 0
+		for i in range(instances):
+		
+			ps = X[i] - centroids_EM[k]
+		
+			sw = np.outer(ps,ps.T)
+			sw1 = fi_x_vector[i][k]*sw
+		
+			cuscus2 = cuscus2 + sw1
+	
+		sigmas[k] = cuscus2/n_vector[k]
+	
+	#print distrib
+	#print centroids_EM
+	#print sigmas
 	
 	
