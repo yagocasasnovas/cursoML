@@ -12,6 +12,43 @@ from random import randint
 import copy
 import csv
 
+
+def prob(x, mean, std, mle):
+	
+	inversecov = np.linalg.inv(std)
+	
+	
+	
+	toro = x - mean
+	print toro
+	
+	ff = np.dot(inversecov,toro)
+	print ff
+	
+	js = np.dot(toro,ff)
+	
+	js = (-1) * js / 2
+	print "js"
+	print js
+	raw_input()
+	ee = np.exp(js)
+	print "ee"
+	print ee
+	raw_input()
+	determ = np.linalg.det(std)
+	#print determ
+	determ1 = np.power(determ,-1/2)
+	#print determ1
+	out = determ1 * mle * ee
+	#print out
+	#raw_input()
+
+	return out
+	
+	#e = np.exp(-(x-mean)*(x-mean)/(2*std*std))
+	#return (1 / (np.sqrt(2*np.pi) * std*std)) * e
+
+
 K=5
 it=10
 
@@ -24,6 +61,8 @@ X = np.genfromtxt(sys.argv[1], delimiter=",", usecols=(1,2,3,4,5,6,7,8,9,10,11,1
 
 number_att = len(X[0])
 
+instances = len(X)
+
 nk = 0
 while nk < 5:
 	
@@ -32,15 +71,17 @@ while nk < 5:
 	if l not in centroids_set:
 		centroids_set.add(l)
 		centroids.append(l)
-	nk = nk + 1
-centroids_x = []
+		nk = nk + 1
 
+
+
+centroids_x = []
 
 for c1 in centroids:
 	centroids_x.append(X[c1])
 
 
-
+centroids_EM = centroids_x[:]
 
 
 for iter in range(it):
@@ -100,10 +141,71 @@ for iter in range(it):
 				if ee != 0:
 					csvfile.write(',')
 				csvfile.write(str(idd))
-				
+				ee = ee + 1
 			csvfile.write('\n')
 
 
+
+
+##########EM GMM
+
+
+
+###inicializar means: centroids_EM
+
+### inicializar sigmas dxd donde d = numero de atributos
+
+sigmas = []
+
+factor = 1
+
+for k in range(K):
+
+	sigmas.append(factor*np.identity(number_att))
+
+##distribution
+
+distrib = []
+
+for k in range(K):
+	
+	distrib.append(1/K)
+
+
+###E Step
+
+fi_x_vector = []
+
+
+
+for i in range(instances):
+	
+	fi_k_vector = []
+	
+	for k in range(K):
+		
+		
+		
+		pk = prob(X[i],centroids_EM[k],sigmas[k],distrib[k])
+		
+		pkk = pk * distrib[k]
+		print "pkk"
+		print pkk
+		ss = 0
+		for k1 in range (K):
+			#print str(i) + ' ' + str(k) + ' ' + str(k1) + ' ' + str(len(centroids_EM)) + ' ' + str(len(sigmas))+' ' + str(len(distrib))
+			print str(i) + ' ' + str(k) + ' ' + str(k1)
+			p = prob(X[i],centroids_EM[k1],sigmas[k1],distrib[k1])
+			pp = p * distrib[k1]
+			
+			ss = ss + pp
+			raw_input()
+		print "s"
+		print pkk/ss
+		fi_k_vector.append(pkk/ss)
+	
+	fi_x_vector.append(fi_k_vector)
+	
 
 
 	
