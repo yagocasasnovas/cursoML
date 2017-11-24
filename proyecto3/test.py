@@ -13,11 +13,9 @@ import copy
 import csv
 
 
-def prob(x, mean, std, mle):
+def prob(x, mean, std, size):
 	
 	inversecov = np.linalg.inv(std)
-	
-	
 	
 	toro = x - mean
 
@@ -33,9 +31,11 @@ def prob(x, mean, std, mle):
 
 	determ = np.linalg.det(std)
 	#print determ
-	determ1 = np.power(determ,-1/2)
+	determ1 = np.power(determ,1/2)
 	#print determ1
-	out = determ1 * mle * ee
+	determ2 = np.power(2 * np.pi,size/2)
+	determ3 = 1 / (determ1*determ2)
+	out = determ3 * ee
 	#print out
 	#raw_input()
 
@@ -153,7 +153,7 @@ for iter in range(it):
 
 sigmas = []
 
-factor = 10000
+factor = 10000	
 
 for k in range(K):
 
@@ -161,11 +161,12 @@ for k in range(K):
 
 ##distribution
 
-distrib = []
+distrib = np.zeros(K)
 
 for k in range(K):
 	
-	distrib.append(1/K)
+	distrib[k] = (1/K)
+
 
 
 for iteration in range(it):
@@ -177,13 +178,13 @@ for iteration in range(it):
 
 	for i in range(instances):
 	
-		fi_k_vector = []
+		fi_k_vector = np.zeros(K)
 	
 		for k in range(K):
 			
 			
 			
-			pk = prob(X[i],centroids_EM[k],sigmas[k],distrib[k])
+			pk = prob(X[i],centroids_EM[k],sigmas[k],number_att)
 		
 			pkk = pk * distrib[k]
 		
@@ -191,12 +192,12 @@ for iteration in range(it):
 			for k1 in range (K):
 				#print str(i) + ' ' + str(k) + ' ' + str(k1) + ' ' + str(len(centroids_EM)) + ' ' + str(len(sigmas))+' ' + str(len(distrib))
 				#print str(i) + ' ' + str(k) + ' ' + str(k1)
-				p = prob(X[i],centroids_EM[k1],sigmas[k1],distrib[k1])
+				p = prob(X[i],centroids_EM[k1],sigmas[k1],number_att)
 				pp = p * distrib[k1]
 			
 				ss = ss + pp
 
-			fi_k_vector.append(pkk/ss)
+			fi_k_vector[k] = pkk/ss
 	
 		fi_x_vector.append(fi_k_vector)
 	
@@ -205,7 +206,7 @@ for iteration in range(it):
 
 	###M Step
 
-	n_vector = []
+	n_vector = np.zeros(K)
 	for k in range(K):
 		
 		n_temp_k = 0
@@ -214,12 +215,12 @@ for iteration in range(it):
 		
 			n_temp_k = n_temp_k = fi_x_vector[i][k]
 		
-		n_vector.append(n_temp_k)
+		n_vector[k] = n_temp_k
 	
-	print n_vector
-	print np.linalg.norm(n_vector)
-	print distrib
-	raw_input()
+	#print n_vector
+	#print np.linalg.norm(n_vector)
+	#print distrib
+	
 	
 	#update distrib
 	
@@ -259,5 +260,50 @@ for iteration in range(it):
 	#print distrib
 	#print centroids_EM
 	#print sigmas
+	#print fi_x_vector
+	#raw_input()
 	
+	
+	kks = 0
+	itt1 = iteration + 1
+	namefile1 = "pi-"+str(itt1)+".csv"
+	with open(namefile1, 'w') as csvfile1:
+		for k in distrib:
+			csvfile1.write(str(k))
+			
+			csvfile1.write('\n')
+	
+	#print centroids_EM
+	#raw_input()
+	
+	itt2 = iteration + 1
+	namefile2 = "mu-"+str(itt2)+".csv"
+	with open(namefile2, 'w') as csvfile2:
+		for i in centroids_EM:
+			ee = 0
+			for k in range(K):
+				if ee != 0:
+					csvfile2.write(',')
+				csvfile2.write(str(i[k]))
+				ee = ee + 1
+			csvfile2.write('\n')
+	
+	itt3 = iteration + 1
+
+	for k in range(K):
+		namefile3 = "sigma-"+str(k+1)+"-"+str(itt3)+".csv"
+		with open(namefile3, 'w') as csvfile3:
+			
+			for n in range(number_att):
+				ee = 0
+				for nn in range(number_att):
+					if ee != 0:
+						csvfile3.write(',')
+					csvfile3.write(str(sigmas[k][n][nn]))
+					ee = ee + 1
+				csvfile3.write('\n')
+
+			
+			
+			
 	

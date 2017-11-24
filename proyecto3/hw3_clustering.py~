@@ -53,7 +53,7 @@ centroids_set = set()
 threshold = 0.000001
 end = 0
 
-X = np.genfromtxt(sys.argv[1], delimiter=",", usecols=(1,2,3,4,5,6,7,8,9,10,11,12,13))
+X = np.genfromtxt(sys.argv[1], delimiter=",")
 
 number_att = len(X[0])
 
@@ -291,14 +291,18 @@ for iteration in range(it):
 	itt3 = iteration + 1
 
 	for k in range(K):
-		namefile3 = "sigma-"+str(k+1)+"-"+str(itt3)+".csv"
+		namefile3 = "Sigma-"+str(k+1)+"-"+str(itt3)+".csv"
 		with open(namefile3, 'w') as csvfile3:
 			
 			for n in range(number_att):
+				ee = 0
 				for nn in range(number_att):
-					print sigmas[k][n][nn]
-					raw_input()
+					if ee != 0:
+						csvfile3.write(',')
+					csvfile3.write(str(sigmas[k][n][nn]))
+					ee = ee + 1
+				csvfile3.write('\n')
+
 			
 			
 			
-	
