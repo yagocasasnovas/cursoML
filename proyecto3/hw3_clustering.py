@@ -11,7 +11,9 @@ import math
 from random import randint
 import copy
 import csv
-
+from scipy.stats import multivariate_normal
+#import time
+#start_time = time.time()
 
 def prob(x, mean, std, size):
 	
@@ -91,7 +93,7 @@ for iter in range(it):
 	
 	for idx, x in enumerate(X):
 		cbueno = -1
-		min = 10000000
+		min = 1000000000000
 		for idy, c in enumerate(centroids_x):
 	
 		
@@ -146,14 +148,57 @@ for iter in range(it):
 ##########EM GMM
 
 
+##normalize data
+
+
+for i in range(len(X[0])):
+	suma = 0
+	for j in range(instances):
+		
+		suma = suma + X[j][i]
+	
+	media = suma / instances
+	
+	suma2 = 0
+	for jj in range(instances):
+		suma2 = suma2 + (X[jj][i] - media)*(X[jj][i] - media)
+
+	hg = suma2/instances
+	varianza = np.power(hg,1/2)
+	
+	for u in range(instances):
+		
+		X[u][i] = (X[u][i] - media) / varianza
+
+
+
+
 
 ###inicializar means: centroids_EM
+
+
+nk = 0
+while nk < 5:
+	
+	l = np.random.randint(0,high=len(X)-1)
+	
+	if l not in centroids_set:
+		centroids_set.add(l)
+		centroids.append(l)
+		nk = nk + 1
+
+
+centroids_EM = []
+
+for c1 in centroids:
+	centroids_EM.append(X[c1])
+
 
 ### inicializar sigmas dxd donde d = numero de atributos
 
 sigmas = []
 
-factor = 10000	
+factor = 1
 
 for k in range(K):
 
@@ -170,7 +215,9 @@ for k in range(K):
 
 
 for iteration in range(it):
-	###E Step
+	
+	
+	#######################3###E Step
 
 	fi_x_vector = []
 
@@ -184,7 +231,9 @@ for iteration in range(it):
 			
 			
 			
-			pk = prob(X[i],centroids_EM[k],sigmas[k],number_att)
+			#pk = prob(X[i],centroids_EM[k],sigmas[k],number_att)
+			pk = multivariate_normal.pdf(X[i],centroids_EM[k],sigmas[k],allow_singular=True)
+
 		
 			pkk = pk * distrib[k]
 		
@@ -192,10 +241,17 @@ for iteration in range(it):
 			for k1 in range (K):
 				#print str(i) + ' ' + str(k) + ' ' + str(k1) + ' ' + str(len(centroids_EM)) + ' ' + str(len(sigmas))+' ' + str(len(distrib))
 				#print str(i) + ' ' + str(k) + ' ' + str(k1)
-				p = prob(X[i],centroids_EM[k1],sigmas[k1],number_att)
+				#p = prob(X[i],centroids_EM[k1],sigmas[k1],number_att)
+				p = multivariate_normal.pdf(X[i],centroids_EM[k1],sigmas[k1],allow_singular=True)
+				
+
+				
+				
 				pp = p * distrib[k1]
-			
+
 				ss = ss + pp
+			
+
 
 			fi_k_vector[k] = pkk/ss
 	
@@ -204,22 +260,26 @@ for iteration in range(it):
 
 
 
-	###M Step
+	#######################M Step
 
+
+	##########define nk
+	
 	n_vector = np.zeros(K)
+	
 	for k in range(K):
 		
 		n_temp_k = 0
 		
 		for i in range(instances):
 		
-			n_temp_k = n_temp_k = fi_x_vector[i][k]
+			n_temp_k = n_temp_k + fi_x_vector[i][k]
 		
 		n_vector[k] = n_temp_k
 	
 	#print n_vector
+	#raw_input()
 	#print np.linalg.norm(n_vector)
-	#print distrib
 	
 	
 	#update distrib
@@ -237,7 +297,7 @@ for iteration in range(it):
 		cuscus = 0
 		for i in range(instances):
 		
-			as1 = n_vector[k]*X[i]
+			as1 = fi_x_vector[i][k]*X[i]
 		
 			cuscus = cuscus + as1
 		
@@ -257,19 +317,20 @@ for iteration in range(it):
 	
 		sigmas[k] = cuscus2/n_vector[k]
 	
-	#print distrib
+
+
+
 	#print centroids_EM
 	#print sigmas
 	#print fi_x_vector
 	#raw_input()
 	
-	
 	kks = 0
 	itt1 = iteration + 1
 	namefile1 = "pi-"+str(itt1)+".csv"
 	with open(namefile1, 'w') as csvfile1:
-		for k in distrib:
-			csvfile1.write(str(k))
+		for d in distrib:
+			csvfile1.write(str(d))
 			
 			csvfile1.write('\n')
 	
@@ -279,12 +340,12 @@ for iteration in range(it):
 	itt2 = iteration + 1
 	namefile2 = "mu-"+str(itt2)+".csv"
 	with open(namefile2, 'w') as csvfile2:
-		for i in centroids_EM:
+		for c in centroids_EM:
 			ee = 0
 			for k in range(K):
 				if ee != 0:
 					csvfile2.write(',')
-				csvfile2.write(str(i[k]))
+				csvfile2.write(str(c[k]))
 				ee = ee + 1
 			csvfile2.write('\n')
 	
@@ -302,6 +363,7 @@ for iteration in range(it):
 					csvfile3.write(str(sigmas[k][n][nn]))
 					ee = ee + 1
 				csvfile3.write('\n')
+
 
 			
 			

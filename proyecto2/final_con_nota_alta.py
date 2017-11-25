@@ -134,7 +134,7 @@ def calculate_mean_std_dev(xtrain,ytrain):
 
 
 
-def prob(x, mean, std, mle):
+def prob(x, mean, std):
 	
 	inversecov = np.linalg.inv(std)
 	toro = x - mean
