@@ -79,7 +79,7 @@ for c1 in centroids:
 	centroids_x.append(X[c1])
 
 
-centroids_EM = centroids_x[:]
+#centroids_EM = centroids_x[:]
 
 
 for iter in range(it):
@@ -149,7 +149,7 @@ for iter in range(it):
 
 
 ##normalize data
-
+varianzas = np.zeros(len(X[0]))
 
 for i in range(len(X[0])):
 	suma = 0
@@ -166,32 +166,32 @@ for i in range(len(X[0])):
 	hg = suma2/instances
 	varianza = np.power(hg,1/2)
 	
-	for u in range(instances):
-		
-		X[u][i] = (X[u][i] - media) / varianza
+	varianzas[i] = varianza
+
 
 
 
 
 
 ###inicializar means: centroids_EM
-
+centroids_set_EM = set()
 
 nk = 0
 while nk < 5:
 	
 	l = np.random.randint(0,high=len(X)-1)
 	
-	if l not in centroids_set:
-		centroids_set.add(l)
+	if l not in centroids_set_EM:
+		centroids_set_EM.add(l)
 		centroids.append(l)
 		nk = nk + 1
 
 
 centroids_EM = []
 
-for c1 in centroids:
+for c1 in centroids_set_EM:
 	centroids_EM.append(X[c1])
+
 
 
 ### inicializar sigmas dxd donde d = numero de atributos
@@ -199,10 +199,19 @@ for c1 in centroids:
 sigmas = []
 
 factor = 1
+iden = np.identity(number_att)
+gh = iden*varianzas
+
+
+
 
 for k in range(K):
 
-	sigmas.append(factor*np.identity(number_att))
+	sigmas.append(gh)
+	
+
+
+
 
 ##distribution
 
@@ -252,7 +261,7 @@ for iteration in range(it):
 				ss = ss + pp
 			
 
-
+			
 			fi_k_vector[k] = pkk/ss
 	
 		fi_x_vector.append(fi_k_vector)
@@ -318,12 +327,6 @@ for iteration in range(it):
 		sigmas[k] = cuscus2/n_vector[k]
 	
 
-
-
-	#print centroids_EM
-	#print sigmas
-	#print fi_x_vector
-	#raw_input()
 	
 	kks = 0
 	itt1 = iteration + 1
@@ -336,16 +339,16 @@ for iteration in range(it):
 	
 	#print centroids_EM
 	#raw_input()
-	
+
 	itt2 = iteration + 1
 	namefile2 = "mu-"+str(itt2)+".csv"
 	with open(namefile2, 'w') as csvfile2:
 		for c in centroids_EM:
 			ee = 0
-			for k in range(K):
+			for l in range(len(c)):
 				if ee != 0:
 					csvfile2.write(',')
-				csvfile2.write(str(c[k]))
+				csvfile2.write(str(c[l]))
 				ee = ee + 1
 			csvfile2.write('\n')
 	

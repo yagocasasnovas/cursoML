@@ -192,7 +192,8 @@ centroids_EM = []
 for c1 in centroids_set_EM:
 	centroids_EM.append(X[c1])
 
-
+print centroids_EM
+raw_input()
 
 ### inicializar sigmas dxd donde d = numero de atributos
 

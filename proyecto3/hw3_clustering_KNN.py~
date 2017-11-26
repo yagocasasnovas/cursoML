@@ -79,7 +79,7 @@ for c1 in centroids:
 	centroids_x.append(X[c1])
 
 
-#centroids_EM = centroids_x[:]
+centroids_EM = centroids_x[:]
 
 
 for iter in range(it):
@@ -143,195 +143,6 @@ for iter in range(it):
 			csvfile.write('\n')
 
 
-
-
-##########EM GMM
-
-
-##normalize data
-varianzas = np.zeros(len(X[0]))
-
-for i in range(len(X[0])):
-	suma = 0
-	for j in range(instances):
-		
-		suma = suma + X[j][i]
-	
-	media = suma / instances
-	
-	suma2 = 0
-	for jj in range(instances):
-		suma2 = suma2 + (X[jj][i] - media)*(X[jj][i] - media)
-
-	hg = suma2/instances
-	varianza = np.power(hg,1/2)
-	
-	varianzas[i] = varianza
-
-
-
-
-
-
-###inicializar means: centroids_EM
-centroids_set_EM = set()
-
-nk = 0
-while nk < 5:
-	
-	l = np.random.randint(0,high=len(X)-1)
-	
-	if l not in centroids_set_EM:
-		centroids_set_EM.add(l)
-		centroids.append(l)
-		nk = nk + 1
-
-
-centroids_EM = []
-
-for c1 in centroids_set_EM:
-	centroids_EM.append(X[c1])
-
-
-
-### inicializar sigmas dxd donde d = numero de atributos
-
-sigmas = []
-
-factor = 1
-iden = np.identity(number_att)
-gh = iden*varianzas
-
-
-
-
-for k in range(K):
-
-	sigmas.append(gh)
-	
-
-
-
-
-##distribution
-
-distrib = np.zeros(K)
-
-for k in range(K):
-	
-	distrib[k] = (1/K)
-
-
-
-for iteration in range(it):
-	
-	
-	#######################3###E Step
-
-	fi_x_vector = []
-
-
-
-	for i in range(instances):
-	
-		fi_k_vector = np.zeros(K)
-	
-		for k in range(K):
-			
-			
-			
-			#pk = prob(X[i],centroids_EM[k],sigmas[k],number_att)
-			pk = multivariate_normal.pdf(X[i],centroids_EM[k],sigmas[k],allow_singular=True)
-
-		
-			pkk = pk * distrib[k]
-		
-			ss = 0
-			for k1 in range (K):
-				#print str(i) + ' ' + str(k) + ' ' + str(k1) + ' ' + str(len(centroids_EM)) + ' ' + str(len(sigmas))+' ' + str(len(distrib))
-				#print str(i) + ' ' + str(k) + ' ' + str(k1)
-				#p = prob(X[i],centroids_EM[k1],sigmas[k1],number_att)
-				p = multivariate_normal.pdf(X[i],centroids_EM[k1],sigmas[k1],allow_singular=True)
-				
-
-				
-				
-				pp = p * distrib[k1]
-
-				ss = ss + pp
-			
-
-			
-			fi_k_vector[k] = pkk/ss
-	
-		fi_x_vector.append(fi_k_vector)
-	
-
-
-
-	#######################M Step
-
-
-	##########define nk
-	
-	n_vector = np.zeros(K)
-	
-	for k in range(K):
-		
-		n_temp_k = 0
-		
-		for i in range(instances):
-		
-			n_temp_k = n_temp_k + fi_x_vector[i][k]
-		
-		n_vector[k] = n_temp_k
-	
-	#print n_vector
-	#raw_input()
-	#print np.linalg.norm(n_vector)
-	
-	
-	#update distrib
-	
-
-
-	for k in range(K):
-		
-		ty = n_vector[k]
-		ty = ty / instances
-		distrib[k]=ty
-		
-		#update mean
-	
-		cuscus = 0
-		for i in range(instances):
-		
-			as1 = fi_x_vector[i][k]*X[i]
-		
-			cuscus = cuscus + as1
-		
-		centroids_EM[k] = cuscus/n_vector[k]
-		
-		
-		#update sigma
-		cuscus2 = 0
-		for i in range(instances):
-		
-			ps = X[i] - centroids_EM[k]
-		
-			sw = np.outer(ps,ps.T)
-			sw1 = fi_x_vector[i][k]*sw
-		
-			cuscus2 = cuscus2 + sw1
-	
-		sigmas[k] = cuscus2/n_vector[k]
-	
-	print "iteration"
-	print iteration
-	print distrib
-	
-
-
 	
 	kks = 0
 	itt1 = iteration + 1
@@ -344,16 +155,16 @@ for iteration in range(it):
 	
 	#print centroids_EM
 	#raw_input()
-
+	
 	itt2 = iteration + 1
 	namefile2 = "mu-"+str(itt2)+".csv"
 	with open(namefile2, 'w') as csvfile2:
 		for c in centroids_EM:
 			ee = 0
-			for l in range(len(c)):
+			for k in range(K):
 				if ee != 0:
 					csvfile2.write(',')
-				csvfile2.write(str(c[l]))
+				csvfile2.write(str(c[k]))
 				ee = ee + 1
 			csvfile2.write('\n')
 	
