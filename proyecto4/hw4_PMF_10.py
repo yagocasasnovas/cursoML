@@ -1,6 +1,4 @@
 ### proyecto 4
-##version 10
-
 
 import numpy as np
 import sys
@@ -24,18 +22,9 @@ d = 5
 	
 	
 hola = pandas.read_csv(input_file,header=None,names=['UserID', 'MovieID', 'Rating'],usecols=[0,1,2])
-hola1 = pandas.read_csv(input_file,header=None,names=['MovieID','UserID', 'Rating'],usecols=[0,1,2])
-
-print hola1.head()
-raw_input()
+	
 
 
-hola2 = hola.pivot(index = 'UserID', columns ='MovieID', values = 'Rating').fillna(0)
-
-
-power = lambda x: x*x
-
-norma = lambda x: (gamma/2.0)*np.linalg.norm(x)*np.linalg.norm(x)
 ### iniciar V
 
 
@@ -48,8 +37,8 @@ cov1 = gammainv*cov1
 vj = {}
 
 
-#v_length = len(hola['MovieID'].unique())
-#u_length = len(hola['UserID'].unique())
+v_length = len(hola['MovieID'].unique())
+u_length = len(hola['UserID'].unique())
 
 #print v_length
 
@@ -80,11 +69,6 @@ for u1 in list_of_users:
 ui = pandas.DataFrame.from_dict(ui)
 
 lambda_vector = []
-
-
-user_movies = []
-
-
 
 
 for iteration in range(50):
@@ -128,11 +112,7 @@ for iteration in range(50):
 	for j in list_of_movies:
 		
 		
-		print hola1['MovieID']
-		print hola['MovieID']
-		raw_input()
-		
-		movie_users = hola[hola1['MovieID']==j]
+		movie_users = hola[hola['MovieID']==j]
 		
 		uis = ui[movie_users['UserID']]
 
@@ -165,7 +145,7 @@ for iteration in range(50):
 	sf = (hola2 - np.dot(ui.T,vj))
 	
 	
-	
+	power = lambda x: x*x
 	
 	sf = sf.apply(power)
 	
@@ -174,7 +154,7 @@ for iteration in range(50):
 	sumatorio = sf /  (2.0*cov_sigma)
 	
 	
-	
+	norma = lambda x: (gamma/2.0)*np.linalg.norm(x)*np.linalg.norm(x)
 	
 	ui_1 = ui.apply(norma)
 	

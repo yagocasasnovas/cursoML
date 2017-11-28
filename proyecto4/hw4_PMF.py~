@@ -24,7 +24,7 @@ d = 5
 	
 	
 hola = pandas.read_csv(input_file,header=None,names=['UserID', 'MovieID', 'Rating'],usecols=[0,1,2])
-hola1 = pandas.read_csv(input_file,header=None,names=['MovieID','UserID', 'Rating'],usecols=[0,1,2])
+hola1 = pandas.read_csv(input_file,header=None,names=['MovieID','UserID', 'Rating'],usecols=[1,0,2])
 
 print hola1.head()
 raw_input()

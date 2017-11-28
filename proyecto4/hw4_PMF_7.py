@@ -1,6 +1,4 @@
 ### proyecto 4
-##version 10
-
 
 import numpy as np
 import sys
@@ -24,18 +22,24 @@ d = 5
 	
 	
 hola = pandas.read_csv(input_file,header=None,names=['UserID', 'MovieID', 'Rating'],usecols=[0,1,2])
-hola1 = pandas.read_csv(input_file,header=None,names=['MovieID','UserID', 'Rating'],usecols=[0,1,2])
+	
 
-print hola1.head()
-raw_input()
+
+minuser = hola['UserID'].min()
+maxuser = hola['UserID'].max()
+minmovie = hola['MovieID'].min()
+maxmovie = hola['MovieID'].max()
+
 
 
 hola2 = hola.pivot(index = 'UserID', columns ='MovieID', values = 'Rating').fillna(0)
+hola3 = hola.pivot(index = 'MovieID', columns ='UserID', values = 'Rating').fillna(0)
 
 
-power = lambda x: x*x
 
-norma = lambda x: (gamma/2.0)*np.linalg.norm(x)*np.linalg.norm(x)
+
+
+
 ### iniciar V
 
 
@@ -48,8 +52,8 @@ cov1 = gammainv*cov1
 vj = {}
 
 
-#v_length = len(hola['MovieID'].unique())
-#u_length = len(hola['UserID'].unique())
+v_length = len(hola['MovieID'].unique())
+u_length = len(hola['UserID'].unique())
 
 #print v_length
 
@@ -82,14 +86,9 @@ ui = pandas.DataFrame.from_dict(ui)
 lambda_vector = []
 
 
-user_movies = []
-
-
-
-
 for iteration in range(50):
 	
-	#print "iteration"
+	print "iteration"
 	print iteration
 	start_time = time.time()
 	#print iteration
@@ -97,18 +96,34 @@ for iteration in range(50):
 	
 	for i in list_of_users:
 	
+		##numerador
+		
+		
+		s = (d,d)
+		suma2 = np.zeros(s)
+		
 		user_movies = hola[hola['UserID']==i]
 		
-		vjs = vj[user_movies['MovieID']]
 		
 		
-		suma2 = np.dot(vjs,vjs.T) + gamma*cov_sigma*np.identity(d)
+		for j in user_movies['MovieID']:
+
+			suma2 = suma2 + np.outer(vj[j],vj[j].T)
+		
+		
+		suma2 = suma2 + gamma*cov_sigma*np.identity(d)
 		
 		
 		denom = np.linalg.inv(suma2)
 		
+		
+		#print denom.dot(suma)
+		
 
-		ms = user_movies['Rating']
+		ms = hola3[i][user_movies['MovieID']]
+
+		
+		vjs = vj[user_movies['MovieID']]
 		
 		
 		ty = np.dot(vjs,ms)
@@ -128,15 +143,26 @@ for iteration in range(50):
 	for j in list_of_movies:
 		
 		
-		print hola1['MovieID']
-		print hola['MovieID']
-		raw_input()
 		
-		movie_users = hola[hola1['MovieID']==j]
+		##numerador
 		
-		uis = ui[movie_users['UserID']]
+		
+		
+		s = (d,d)
+		suma2 = np.zeros(s)
+		
+		movie_users = hola[hola['MovieID']==j]
+		
+		#print movie_users['Rating']
 
-		suma2 = np.dot(uis,uis.T) + gamma*cov_sigma*np.identity(d)
+		for i in movie_users['UserID']:
+
+			
+			suma2 = suma2 + np.outer(ui[i],ui[i].T)
+
+
+		
+		suma2 = suma2 + gamma*cov_sigma*np.identity(d)
 		
 		
 		
@@ -145,10 +171,10 @@ for iteration in range(50):
 		
 		
 
-		ms1 = movie_users['Rating']
+		ms1 = hola2[j][movie_users['UserID']]
 
 		
-		
+		uis = ui[movie_users['UserID']]
 		
 		
 		ty1 = np.dot(uis,ms1)
@@ -157,7 +183,7 @@ for iteration in range(50):
 		
 	print("--- %s seconds movie update ---" % (time.time() - start_time))
 	####objective function
-	#start_time = time.time()
+	start_time = time.time()
 	#primer sumando
 	
 	
@@ -165,7 +191,7 @@ for iteration in range(50):
 	sf = (hola2 - np.dot(ui.T,vj))
 	
 	
-	
+	power = lambda x: x*x
 	
 	sf = sf.apply(power)
 	
@@ -174,7 +200,7 @@ for iteration in range(50):
 	sumatorio = sf /  (2.0*cov_sigma)
 	
 	
-	
+	norma = lambda x: (gamma/2.0)*np.linalg.norm(x)*np.linalg.norm(x)
 	
 	ui_1 = ui.apply(norma)
 	
@@ -191,7 +217,7 @@ for iteration in range(50):
 	lambda_vector.append(lambda1)
 	itt = iteration+1
 	
-	#print("--- %s seconds lambda update ---" % (time.time() - start_time))
+	print("--- %s seconds lambda update ---" % (time.time() - start_time))
 	
 	if itt in [10,25,50]:
 		namefile2 = "U-"+str(itt)+".csv"
@@ -225,7 +251,7 @@ with open(namefile4, 'w') as csvfile4:
 
 csvfile4.close()
 
-#print("--- %s seconds ---" % (time.time() - start_time))
+print("--- %s seconds ---" % (time.time() - start_time))
 
 
 

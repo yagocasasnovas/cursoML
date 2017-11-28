@@ -1,6 +1,4 @@
 ### proyecto 4
-##version 10
-
 
 import numpy as np
 import sys
@@ -9,7 +7,7 @@ import pandas
 from scipy.sparse.linalg import svds
 from scipy.stats import multivariate_normal
 import time
-
+start_time = time.time()
 
 
 input_file = sys.argv[1]
@@ -24,18 +22,24 @@ d = 5
 	
 	
 hola = pandas.read_csv(input_file,header=None,names=['UserID', 'MovieID', 'Rating'],usecols=[0,1,2])
-hola1 = pandas.read_csv(input_file,header=None,names=['MovieID','UserID', 'Rating'],usecols=[0,1,2])
+	
 
-print hola1.head()
-raw_input()
+
+minuser = hola['UserID'].min()
+maxuser = hola['UserID'].max()
+minmovie = hola['MovieID'].min()
+maxmovie = hola['MovieID'].max()
+
 
 
 hola2 = hola.pivot(index = 'UserID', columns ='MovieID', values = 'Rating').fillna(0)
 
 
-power = lambda x: x*x
 
-norma = lambda x: (gamma/2.0)*np.linalg.norm(x)*np.linalg.norm(x)
+
+
+
+
 ### iniciar V
 
 
@@ -48,8 +52,8 @@ cov1 = gammainv*cov1
 vj = {}
 
 
-#v_length = len(hola['MovieID'].unique())
-#u_length = len(hola['UserID'].unique())
+v_length = len(hola['MovieID'].unique())
+u_length = len(hola['UserID'].unique())
 
 #print v_length
 
@@ -82,117 +86,124 @@ ui = pandas.DataFrame.from_dict(ui)
 lambda_vector = []
 
 
-user_movies = []
-
-
-
-
 for iteration in range(50):
 	
-	#print "iteration"
-	print iteration
-	start_time = time.time()
 	#print iteration
 	## user update
 	
 	for i in list_of_users:
 	
-		user_movies = hola[hola['UserID']==i]
+		##numerador
 		
-		vjs = vj[user_movies['MovieID']]
+		suma = np.zeros(d)
+		s = (d,d)
+		suma2 = np.zeros(s)
 		
+		user_movies = hola[list_of_users==i]
 		
-		suma2 = np.dot(vjs,vjs.T) + gamma*cov_sigma*np.identity(d)
-		
-		
-		denom = np.linalg.inv(suma2)
-		
+		for j in user_movies['MovieID']:
 
-		ms = user_movies['Rating']
+			fv = vj[j]
+			
+			
+			
+			suma = suma + hola2.ix[i,j]*fv
+			
+			
+			suma2 = suma2 + np.outer(fv,fv.T)
+			
+			
 		
 		
-		ty = np.dot(vjs,ms)
-		
-		ui[i] = denom.dot(ty)
+		#suma2 = suma2 + gamma*cov_sigma*np.identity(d)
 		
 		
+		#denom = np.linalg.inv(suma2 + gamma*cov_sigma*np.identity(d))
 		
-	print("--- %s seconds user update ---" % (time.time() - start_time))
-	
-	
-	
+		
+		ui[i] = np.linalg.inv(suma2 + gamma*cov_sigma*np.identity(d)).dot(suma)
+		
 	###movie update
-	start_time = time.time()
+	
 
 	
 	for j in list_of_movies:
 		
 		
-		print hola1['MovieID']
-		print hola['MovieID']
-		raw_input()
 		
-		movie_users = hola[hola1['MovieID']==j]
+		##numerador
 		
-		uis = ui[movie_users['UserID']]
+		suma = np.zeros(d)
+		
+		s = (d,d)
+		suma2 = np.zeros(s)
+		
+		movie_users = hola[list_of_movies==j]
+		
+		
+		for i in movie_users['UserID']:
 
-		suma2 = np.dot(uis,uis.T) + gamma*cov_sigma*np.identity(d)
+			
+			fu = ui[i]
+			M = hola2.ix[i,j]
+			
+			suma2 = suma2 + np.outer(fu,fu.T)
+			suma = suma + M*fu
 		
+		
+		suma2 = suma2 + gamma*cov_sigma*np.identity(d)
 		
 		
 		denom = np.linalg.inv(suma2)
-
 		
 		
-
-		ms1 = movie_users['Rating']
-
+		vj[j] = denom.dot(suma)
 		
 		
 		
 		
-		ty1 = np.dot(uis,ms1)
-		vj[j] = denom.dot(ty1)
-
-		
-	print("--- %s seconds movie update ---" % (time.time() - start_time))
+	
 	####objective function
-	#start_time = time.time()
+	
 	#primer sumando
 	
+	sumatorio = 0.0
 	
+	for i in list_of_users:
+		
+		for j in list_of_movies:
+			
+			dd = np.dot(ui[i],vj[j])
+			
+			mm = hola2.ix[i,j]
+			
+			tt = (mm - dd)*(mm - dd)
+			
+			tt = tt / (2.0*cov_sigma)
+			
+			sumatorio = sumatorio + tt
+			
 	
-	sf = (hola2 - np.dot(ui.T,vj))
+	sumatorio2 = 0.0
 	
+	for i in list_of_users:
+		
+		
+		sumatorio2 = sumatorio2 + (gamma/2.0) * np.linalg.norm(ui[i])
+
+
+	sumatorio3 = 0.0
 	
-	
-	
-	sf = sf.apply(power)
-	
-	sf = sf.sum().sum()
-	
-	sumatorio = sf /  (2.0*cov_sigma)
-	
-	
-	
-	
-	ui_1 = ui.apply(norma)
-	
-	sumatorio2 = ui_1.sum()
-	
-	vj_1 = vj.apply(norma)
-	
-	sumatorio3 = vj_1.sum()
-	
+	for j in list_of_movies:
+		
+		
+		sumatorio3 = sumatorio3 + (gamma/2.0) * np.linalg.norm(vj[j])
 
 	lambda1 = sumatorio + sumatorio2 + sumatorio3
 	lambda1 = lambda1*(-1.0)
 	
 	lambda_vector.append(lambda1)
 	itt = iteration+1
-	
-	#print("--- %s seconds lambda update ---" % (time.time() - start_time))
-	
 	if itt in [10,25,50]:
 		namefile2 = "U-"+str(itt)+".csv"
 		with open(namefile2, 'w') as csvfile2:
@@ -225,7 +236,7 @@ with open(namefile4, 'w') as csvfile4:
 
 csvfile4.close()
 
-#print("--- %s seconds ---" % (time.time() - start_time))
+print("--- %s seconds ---" % (time.time() - start_time))
 
 
 
