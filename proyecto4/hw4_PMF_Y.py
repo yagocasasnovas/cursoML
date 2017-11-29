@@ -152,7 +152,8 @@ for iteration in range(50):
 		
 	#print("--- %s seconds user update ---" % (time.time() - start_time))
 	
-	U_matrices.append(ui.T)
+	if iteration in [9,24,49]:
+		U_matrices.append(ui.T)
 	
 	
 	###movie update
@@ -188,8 +189,8 @@ for iteration in range(50):
 		ssq1 = ssq1/np.linalg.norm(ssq1)
 
 		vj[j] = ssq1 
-	
-	V_matrices.append(vj.T)
+	if iteration in [9,24,49]:
+		V_matrices.append(vj.T)
 	#print("--- %s seconds movie update ---" % (time.time() - start_time))
 	####objective function
 	#start_time = time.time()
@@ -237,13 +238,13 @@ for iteration in range(50):
 
 print("--- %s seconds finish ---" % (time.time() - start_time))
 
-np.savetxt("U-10.csv", U_matrices[9], delimiter=",")
-np.savetxt("U-25.csv", U_matrices[24], delimiter=",")
-np.savetxt("U-50.csv", U_matrices[49], delimiter=",")
+np.savetxt("U-10.csv", U_matrices[0], delimiter=",")
+np.savetxt("U-25.csv", U_matrices[1], delimiter=",")
+np.savetxt("U-50.csv", U_matrices[2], delimiter=",")
 
-np.savetxt("V-10.csv", V_matrices[9], delimiter=",")
-np.savetxt("V-25.csv", V_matrices[24], delimiter=",")
-np.savetxt("V-50.csv", V_matrices[49], delimiter=",")
+np.savetxt("V-10.csv", V_matrices[0], delimiter=",")
+np.savetxt("V-25.csv", V_matrices[1], delimiter=",")
+np.savetxt("V-50.csv", V_matrices[2], delimiter=",")
 
 		
 namefile4 = "objective.csv"
