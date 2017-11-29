@@ -1,3 +1,6 @@
+### proyecto 4
+##version 10
+
 
 import numpy as np
 import sys
@@ -9,24 +12,19 @@ import time
 
 
 
-a = [1.0,2.0,3.0]
-b = [4.0,5.0,6.0]
+input_file = sys.argv[1]
 
-a = np.array(a)
-b = np.array(b)
+gamma = 2.0
+gammainv = 1/gamma
 
+cov_sigma = 0.1
 
-j = np.outer(a,a.T)
-
-k = np.outer(b,b.T)
-
-
-print j+k
-
-
-c = np.column_stack((a,b))
+d = 5 
+	
+	
+hola = pandas.read_csv(input_file,header=None,names=['UserID', 'MovieID', 'Rating'],usecols=[0,1,2])
 
 
 
-print np.dot(c,c.T)
+
 

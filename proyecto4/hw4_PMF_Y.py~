@@ -10,6 +10,11 @@ from scipy.sparse.linalg import svds
 from scipy.stats import multivariate_normal
 import time
 
+start_time = time.time()
+
+V_matrices = []
+U_matrices = []
+
 yago = 7.0
 
 start_time = time.time()
@@ -147,6 +152,7 @@ for iteration in range(50):
 		
 	#print("--- %s seconds user update ---" % (time.time() - start_time))
 	
+	U_matrices.append(ui.T)
 	
 	
 	###movie update
@@ -182,7 +188,8 @@ for iteration in range(50):
 		ssq1 = ssq1/np.linalg.norm(ssq1)
 
 		vj[j] = ssq1 
-		
+	
+	V_matrices.append(vj.T)
 	#print("--- %s seconds movie update ---" % (time.time() - start_time))
 	####objective function
 	#start_time = time.time()
@@ -225,46 +232,19 @@ for iteration in range(50):
 	lambda_vector.append(lambda1)
 	itt = iteration+1
 	
-	#print("--- %s seconds lambda update ---" % (time.time() - start_time))
+	#print("--- %s seconds iteration update ---" % (time.time() - start_time))
 	
 
-	
-	if itt in [10,25,50]:
-		namefile2 = "U-"+str(itt)+".csv"
-		with open(namefile2, 'w') as csvfile2:
-			for u in ui:
-				
-				ee = 0
-				for l in ui[u]:
-					if ee != 0:
-						csvfile2.write(',')
-					csvfile2.write(str(l))
-					ee = ee + 1
-				csvfile2.write('\n')
-		csvfile2.close()
-		
-		
-		namefile3 = "V-"+str(itt)+".csv"
-		with open(namefile3, 'w') as csvfile3:
-			for v in vj:
-				ee = 0
-				for l in vj[v]:
-					if ee != 0:
-						csvfile3.write(',')
-					csvfile3.write(str(l))
-					ee = ee + 1
-				csvfile3.write('\n')
-		csvfile3.close()
-		
-		print ui
-		print "hola"
-		print vj
-		raw_input()
-		
-		
-	#print("--- %s seconds iteration update ---" % (time.time() - start_time1))
-		
-		
+print("--- %s seconds finish ---" % (time.time() - start_time))
+
+np.savetxt("U-10.csv", U_matrices[9], delimiter=",")
+np.savetxt("U-25.csv", U_matrices[24], delimiter=",")
+np.savetxt("U-50.csv", U_matrices[49], delimiter=",")
+
+np.savetxt("V-10.csv", V_matrices[9], delimiter=",")
+np.savetxt("V-25.csv", V_matrices[24], delimiter=",")
+np.savetxt("V-50.csv", V_matrices[49], delimiter=",")
+
 		
 namefile4 = "objective.csv"
 with open(namefile4, 'w') as csvfile4:

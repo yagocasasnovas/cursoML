@@ -10,7 +10,14 @@ from scipy.sparse.linalg import svds
 from scipy.stats import multivariate_normal
 import time
 
+V_matrices = []
+U_matrices = []
 
+yago = 7.0
+
+start_time = time.time()
+
+lambda_vector = []
 
 input_file = sys.argv[1]
 
@@ -18,30 +25,26 @@ input_file = sys.argv[1]
 gamma = 2.0
 gammainv = 1/gamma
 
-cov_sigma = 0.1
+cov_sigma = 1/10.0
 
 d = 5 
 	
 	
 hola = pandas.read_csv(input_file,header=None,names=['UserID', 'MovieID', 'Rating'],usecols=[0,1,2])
-hola1 = pandas.read_csv(input_file,header=None,names=['MovieID','UserID', 'Rating'],usecols=[0,1,2])
 
-print hola1.head()
-raw_input()
-
+print len(hola)
 
 hola2 = hola.pivot(index = 'UserID', columns ='MovieID', values = 'Rating').fillna(0)
-
 
 power = lambda x: x*x
 
 norma = lambda x: (gamma/2.0)*np.linalg.norm(x)*np.linalg.norm(x)
+
+
 ### iniciar V
 
-
-
 cov1 = np.identity(d)
-
+mean = np.identity(d)
 
 cov1 = gammainv*cov1
 
@@ -56,17 +59,22 @@ vj = {}
 list_of_users = hola['UserID'].unique()
 list_of_movies = hola['MovieID'].unique()
 
+len_users = len(list_of_users)
+len_movies = len(list_of_movies)
+
+print len_users
+print len_movies
+
 for v1 in list_of_movies:
 	
 	
 	#vj.append(np.random.multivariate_normal(np.zeros(5),cov1))
-	vj[v1] = np.random.multivariate_normal(np.zeros(5),cov1)
+	vj[v1] = np.random.multivariate_normal(5*np.ones(d),cov1)
+	#vj[v1] = np.ones(5)
 
 
 vj = pandas.DataFrame.from_dict(vj)
 
-#print vj.head()
-#raw_input()
 
 ## iniciar U 
 
@@ -79,10 +87,19 @@ for u1 in list_of_users:
 
 ui = pandas.DataFrame.from_dict(ui)
 
-lambda_vector = []
+user_movies = {}
 
 
-user_movies = []
+
+for i in list_of_users:
+	
+	user_movies[i] = hola[hola['UserID']==i]['MovieID'].tolist()
+
+movie_users = {}
+
+for j in list_of_movies:
+	
+	movie_users[j] = hola[hola['MovieID']==j]['UserID'].tolist()
 
 
 
@@ -90,17 +107,20 @@ user_movies = []
 for iteration in range(50):
 	
 	#print "iteration"
-	print iteration
-	start_time = time.time()
+	#print iteration
+	#start_time = time.time()
+	#start_time1 = time.time()
 	#print iteration
 	## user update
 	
 	for i in list_of_users:
 	
-		user_movies = hola[hola['UserID']==i]
+		#user_movies = hola[hola['UserID']==i]
+		#print i
+		vjs = vj[user_movies[i]]
+		#print vjs
 		
-		vjs = vj[user_movies['MovieID']]
-		
+
 		
 		suma2 = np.dot(vjs,vjs.T) + gamma*cov_sigma*np.identity(d)
 		
@@ -108,33 +128,41 @@ for iteration in range(50):
 		denom = np.linalg.inv(suma2)
 		
 
-		ms = user_movies['Rating']
+		#ms = user_movies['Rating']
+		ms = hola2.ix[i][user_movies[i]]
 		
 		
 		ty = np.dot(vjs,ms)
 		
-		ui[i] = denom.dot(ty)
+		ssq = denom.dot(ty) + yago*np.ones(d)
+		
+		ssq = ssq/np.linalg.norm(ssq)
+		
+		
+		ui[i] = ssq
 		
 		
 		
-	print("--- %s seconds user update ---" % (time.time() - start_time))
+		
+		
+		
+		
+		
+	#print("--- %s seconds user update ---" % (time.time() - start_time))
 	
 	
 	
 	###movie update
-	start_time = time.time()
+	#start_time = time.time()
 
 	
 	for j in list_of_movies:
 		
+	
 		
-		print hola1['MovieID']
-		print hola['MovieID']
-		raw_input()
+		#movie_users = hola[hola['MovieID']==j]
 		
-		movie_users = hola[hola1['MovieID']==j]
-		
-		uis = ui[movie_users['UserID']]
+		uis = ui[movie_users[j]]
 
 		suma2 = np.dot(uis,uis.T) + gamma*cov_sigma*np.identity(d)
 		
@@ -145,17 +173,20 @@ for iteration in range(50):
 		
 		
 
-		ms1 = movie_users['Rating']
+		ms1 = hola2.ix[movie_users[j]][j]
 
 		
 		
 		
 		
 		ty1 = np.dot(uis,ms1)
-		vj[j] = denom.dot(ty1)
-
+		ssq1 = denom.dot(ty1) + yago*np.ones(d)
 		
-	print("--- %s seconds movie update ---" % (time.time() - start_time))
+		ssq1 = ssq1/np.linalg.norm(ssq1)
+
+		vj[j] = ssq1 
+		
+	#print("--- %s seconds movie update ---" % (time.time() - start_time))
 	####objective function
 	#start_time = time.time()
 	#primer sumando
@@ -173,25 +204,33 @@ for iteration in range(50):
 	
 	sumatorio = sf /  (2.0*cov_sigma)
 	
+	#print sumatorio
 	
-	
-	
-	ui_1 = ui.apply(norma)
-	
-	sumatorio2 = ui_1.sum()
-	
-	vj_1 = vj.apply(norma)
-	
-	sumatorio3 = vj_1.sum()
+	#ui_1 = ui.apply(norma)
 	
 
-	lambda1 = sumatorio + sumatorio2 + sumatorio3
-	lambda1 = lambda1*(-1.0)
+	#print len(list_of_users)
 	
+	
+	#sumatorio2 = ui_1.sum()
+	
+	#print sumatorio2
+	#raw_input()
+	#vj_1 = vj.apply(norma)
+	
+	#sumatorio3 = vj_1.sum()
+	
+	#print sumatorio3
+
+	lambda1 = sumatorio + len_users*1.0 + len_movies*1.0
+	lambda1 = lambda1*(-1.0)
+	#print lambda1
 	lambda_vector.append(lambda1)
 	itt = iteration+1
 	
 	#print("--- %s seconds lambda update ---" % (time.time() - start_time))
+	
+
 	
 	if itt in [10,25,50]:
 		namefile2 = "U-"+str(itt)+".csv"
@@ -206,6 +245,8 @@ for iteration in range(50):
 					ee = ee + 1
 				csvfile2.write('\n')
 		csvfile2.close()
+		
+		
 		namefile3 = "V-"+str(itt)+".csv"
 		with open(namefile3, 'w') as csvfile3:
 			for v in vj:
@@ -217,6 +258,17 @@ for iteration in range(50):
 					ee = ee + 1
 				csvfile3.write('\n')
 		csvfile3.close()
+		
+		print ui
+		print "hola"
+		print vj
+		raw_input()
+		
+		
+	#print("--- %s seconds iteration update ---" % (time.time() - start_time1))
+		
+		
+		
 namefile4 = "objective.csv"
 with open(namefile4, 'w') as csvfile4:
 	for la in lambda_vector:

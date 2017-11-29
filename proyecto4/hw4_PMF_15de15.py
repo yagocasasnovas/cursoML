@@ -242,8 +242,6 @@ for iteration in range(50):
 					ee = ee + 1
 				csvfile2.write('\n')
 		csvfile2.close()
-		
-		
 		namefile3 = "V-"+str(itt)+".csv"
 		with open(namefile3, 'w') as csvfile3:
 			for v in vj:
@@ -255,11 +253,6 @@ for iteration in range(50):
 					ee = ee + 1
 				csvfile3.write('\n')
 		csvfile3.close()
-		
-		print ui
-		print "hola"
-		print vj
-		raw_input()
 		
 		
 	#print("--- %s seconds iteration update ---" % (time.time() - start_time1))
